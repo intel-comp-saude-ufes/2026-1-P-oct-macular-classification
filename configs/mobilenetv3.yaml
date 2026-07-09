@@ -1,0 +1,27 @@
+experiment:
+  name: mobilenetv3
+  seed: 42
+
+data:
+  manifest: data/processed/manifest.csv
+  classes: [CNV, DME, DRUSEN, NORMAL]
+  image_size: 224
+
+model:
+  name: mobilenetv3_small
+  pretrained: true
+
+training:
+  batch_size: 32
+  epochs: 20
+  learning_rate: 0.0001
+  num_workers: 2
+  patience: 5
+
+imbalance:
+  enabled: true
+  strategy: weighted_sampler
+
+output:
+  dir: outputs
+

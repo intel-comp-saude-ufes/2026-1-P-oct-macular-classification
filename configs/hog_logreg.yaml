@@ -1,0 +1,26 @@
+experiment:
+  name: hog_logreg
+  seed: 42
+
+data:
+  manifest: data/processed/manifest.csv
+  classes: [CNV, DME, DRUSEN, NORMAL]
+  image_size: 224
+
+model:
+  name: hog_logreg
+  hog:
+    orientations: 9
+    pixels_per_cell: [16, 16]
+    cells_per_block: [2, 2]
+  logistic_regression:
+    max_iter: 1000
+    solver: lbfgs
+
+imbalance:
+  enabled: true
+  strategy: class_weight
+
+output:
+  dir: outputs
+
