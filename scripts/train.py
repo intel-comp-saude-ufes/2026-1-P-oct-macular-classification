@@ -127,7 +127,6 @@ def train_hog_logreg(config: dict, df: pd.DataFrame, run_dir: Path, class_names:
                     max_iter=int(lr_config.get("max_iter", 1000)),
                     solver=lr_config.get("solver", "lbfgs"),
                     class_weight=class_weight,
-                    multi_class="auto",
                 ),
             ),
         ]
