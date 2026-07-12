@@ -180,17 +180,76 @@ Como mostra a Tabela~\ref{tab:dataset}, o treino é desbalanceado, com razão de
 \subsection{Treinamento}
 \label{subsec:treino}
 
-Os modelos foram implementados em PyTorch, com semente aleatória fixa em 42 para favorecer a reprodutibilidade. A regressão logística é ajustada em etapa única sobre os descritores HOG; o restante desta seção detalha o treino da rede convolucional. Antes de entrar na rede, cada imagem é redimensionada para $224\times224$ e normalizada com média e desvio-padrão de $0{,}5$ por canal. A rede é otimizada com Adam, taxa de aprendizado inicial de $10^{-3}$, minimizando a entropia cruzada em lotes de 32 imagens por até 50 épocas.
+A regressão logística foi implementada com o Scikit-Learn e a rede convolucional compacta em PyTorch, com semente aleatória fixa em 42 para favorecer a reprodutibilidade. A regressão logística é ajustada em etapa única sobre os descritores HOG; o restante desta seção detalha o treino da rede convolucional. Antes de entrar na rede, cada imagem é redimensionada para $224\times224$ e normalizada com média e desvio-padrão de $0{,}5$ por canal. A rede é otimizada com Adam, taxa de aprendizado inicial de $10^{-3}$, minimizando a entropia cruzada em lotes de 32 imagens por até 50 épocas.
 
 A taxa de aprendizado é reduzida por um fator de $0{,}2$ quando a perda de validação não melhora por duas épocas consecutivas. O treino é interrompido antecipadamente após cinco épocas sem melhora dessa perda, e o modelo correspondente à menor perda de validação é retido para avaliação no conjunto de teste oficial.
 
 \subsection{Métricas de avaliação}
 \label{subsec:metricas}
 
-% TODO: Apresentar as métricas reportadas na próxima seção
-placeholder
+O desempenho é reportado na Seção~\ref{sec:resultados} por meio de precisão, \textit{recall} e F1 para cada classe, além da média macro e da acurácia global. A média macro atribui o mesmo peso a todas as classes, independentemente de sua frequência; em particular, o \textit{recall} macro equivale à acurácia balanceada. Reporta-se ainda a área sob a curva ROC (AUC, do inglês \textit{area under the curve}) no esquema um-contra-o-resto, agregada por média macro, que resume a separabilidade das classes sem depender de um limiar de decisão. As matrizes de confusão, das quais derivam as métricas por classe, explicitam os padrões de erro entre as condições.
 
-% TODO: inserir Resultados e Discussão, Conclusão e Agradecimentos.
+\section{Resultados e Discussão}
+\label{sec:resultados}
+
+A Fig.~\ref{fig:loss} apresenta as curvas de perda da rede convolucional. Ambas decrescem de forma consistente e se estabilizam a partir da décima terceira época, sem que a perda de validação volte a subir, o que caracteriza convergência sem \textit{overfitting}. A oscilação das primeiras épocas decorre da taxa de aprendizado inicial e é atenuada após as primeiras reduções aplicadas pelo agendador (Seção~\ref{subsec:treino}). O treino foi encerrado pela parada antecipada na vigésima quarta época, antes do limite configurado, e o modelo retido corresponde à décima nona época.
+
+A ausência de \textit{overfitting} é coerente com as estratégias adotadas. A normalização em lote e o \textit{dropout}, somados ao \textit{pooling} médio global que mantém o modelo em cerca de 94 mil parâmetros (Seção~\ref{subsec:cnn}), limitam a capacidade de memorização, enquanto o aumento de dados (Seção~\ref{subsec:aumento}) introduz variação a cada época. Cabe notar que a perda de validação permanece abaixo da de treino. Esse comportamento é condizente com este protocolo: o aumento de dados e o \textit{dropout} atuam somente durante o treino, e a amostragem ponderada (Seção~\ref{subsec:desbalanceamento}) expõe a rede, no treino, a uma proporção maior das classes minoritárias, ao passo que a validação preserva a distribuição natural do conjunto.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\columnwidth]{figures/cnn_loss_curves.png}
+    \caption{Curvas de perda de treino e validação da rede convolucional compacta.}
+    \label{fig:loss}
+\end{figure}
+
+A Fig.~\ref{fig:confusion} apresenta as matrizes de confusão dos dois modelos no conjunto de teste oficial. Cada matriz registra como as 250 amostras de cada classe real foram distribuídas entre as quatro classes preditas, e é dela que derivam as métricas da Tabela~\ref{tab:results}: a diagonal reúne os acertos, a leitura por linha define o \textit{recall} e a leitura por coluna, a precisão.
+
+\begin{figure*}[t]
+    \centering
+    \setlength{\tabcolsep}{2pt}
+    \begin{tabular}{cc}
+        \includegraphics[width=0.49\textwidth]{figures/hog_logreg_confusion_matrix.png} &
+        \includegraphics[width=0.49\textwidth]{figures/cnn_confusion_matrix.png} \\
+        \small (a) HOG + Regressão Logística & \small (b) Rede Convolucional Compacta
+    \end{tabular}
+    \caption{Matrizes de confusão no conjunto de teste oficial (1.000 B-scans, 250 por classe): (a) HOG com regressão logística e (b) rede convolucional compacta. As linhas correspondem à classe real e as colunas, à classe predita.}
+    \label{fig:confusion}
+\end{figure*}
+
+\begin{table}[t]
+\caption{Desempenho no conjunto de teste oficial. Como o conjunto é balanceado, a acurácia coincide com a acurácia balanceada.}
+\label{tab:results}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{l ccc ccc}
+\toprule
+ & \multicolumn{3}{c}{\textbf{HOG + Reg. Logística}} & \multicolumn{3}{c}{\textbf{CNN Compacta}} \\
+\cmidrule(lr){2-4} \cmidrule(lr){5-7}
+\textbf{Classe} & \textbf{Prec.} & \textbf{Rec.} & \textbf{F1} & \textbf{Prec.} & \textbf{Rec.} & \textbf{F1} \\
+\midrule
+CNV    & 0,53 & 0,78 & 0,63 & 0,84 & 0,98 & 0,90 \\
+DME    & 0,63 & 0,60 & 0,61 & 0,96 & 0,99 & 0,97 \\
+Drusas & 0,66 & 0,43 & 0,52 & 1,00 & 0,80 & 0,89 \\
+Normal & 0,80 & 0,73 & 0,76 & 0,98 & 0,98 & 0,98 \\
+\midrule
+Média macro & 0,65 & 0,64 & 0,63 & 0,95 & 0,94 & 0,94 \\
+\midrule
+Acurácia & \multicolumn{3}{c}{0,636} & \multicolumn{3}{c}{0,938} \\
+AUC macro (OvR) & \multicolumn{3}{c}{0,864} & \multicolumn{3}{c}{0,994} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+A rede convolucional supera a abordagem clássica por uma margem ampla e consistente: a acurácia passa de 0,636 para 0,938, o F1 macro de 0,63 para 0,94 e a AUC macro de 0,864 para 0,994. A vantagem não se concentra em uma única condição, pois o F1 da rede é superior nas quatro classes. Essa diferença é coerente com a natureza dos descritores. O HOG resume orientações locais de gradiente sobre uma grade fixa e privilegia, portanto, a geometria dos contornos; representa mal os padrões de textura e intensidade associados ao acúmulo de fluido, cuja posição varia entre exames. A rede, ao aprender os filtros diretamente dos B-scans, combina contorno, textura e contexto espacial, o que se reflete sobretudo no DME, cujo F1 salta de 0,61 para 0,97.
+
+Drusas é a classe mais difícil para ambos os modelos e concentra o mesmo modo de erro. Na rede convolucional, o comportamento é assimétrico: a precisão é 1,00, ou seja, nenhuma amostra de outra classe recebe o rótulo de drusas, mas o \textit{recall} é 0,80. A Fig.~\ref{fig:confusion}(b) mostra que, das 50 drusas não recuperadas, 45 são classificadas como CNV, fluxo que explica a menor precisão da rede justamente na CNV (0,84), apesar do \textit{recall} de 0,98. O mesmo padrão, amplificado, ocorre na regressão logística com extratores HOG: das 250 drusas, apenas 108 são recuperadas e 86 migram para a CNV (Fig.~\ref{fig:confusion}(a)). A confusão é clinicamente plausível, pois drusas e CNV pertencem ao mesmo espectro da DMRI, sendo as drusas o achado da forma inicial e a CNV a manifestação neovascular avançada; casos intermediários exibem alterações sutis sob as camadas externas da retina. Contribui ainda o fato de drusas ser a classe minoritária no treino (Tabela~\ref{tab:dataset}): a amostragem ponderada equaliza a frequência das classes nos lotes, mas o faz repetindo as mesmas imagens, sem acrescentar variabilidade.
+
+Na mesma partição de teste, a rede compacta alcança 93,8\% de acurácia, ante os 96,6\% relatados por Kermany et al.~\cite{kermany2018} com uma Inception V3 pré-treinada no ImageNet. A diferença de 2,8 pontos percentuais é obtida com cerca de 94 mil parâmetros, contra aproximadamente 23 milhões, e sem qualquer transferência de aprendizado. O valor também se aproxima dos 94,5\% da LightOCT~\cite{butola2020}, outra arquitetura compacta treinada do zero, o que reforça a viabilidade de modelos reduzidos neste domínio. Resultados obtidos na versão 2 do conjunto, como o de Arefin et al.~\cite{arefin2021}, não constituem referência equivalente, pois aquela partição apresenta sobreposição de sujeitos entre treino e teste~\cite{tampu2022}.
+
+% TODO: inserir Conclusão e Agradecimentos.
 
 \bibliographystyle{IEEEtran}
 \bibliography{references}
