@@ -70,6 +70,16 @@ python scripts/evaluate.py --run outputs/<run_id> --split test
 
 Cada execução salva em `outputs/<run_id>/`: `config.yaml`, `metrics.json`, `classification_report.txt`, `confusion_matrix.png`, `roc_curve.png`, e também `history.csv`/`best_model.pt` para modelos neurais ou `model.joblib` para o baseline HOG.
 
+## Comparação estatística
+
+Para comparar dois modelos treinados no mesmo conjunto de teste:
+
+```bash
+python scripts/compare_models.py --run-a outputs/<run_hog> --run-b outputs/<run_cnn> --split test
+```
+
+O script aplica o teste de McNemar exato (predições pareadas por amostra) e intervalos de confiança de 95% por bootstrap para acurácia e F1 macro de cada modelo, além do IC da diferença entre eles. Os dois runs precisam usar o mesmo manifesto e split, para que o pareamento seja válido. O resultado é impresso e salvo em JSON dentro da pasta de `--run-b`. Não há dependências extras: o núcleo estatístico usa apenas `numpy` e a biblioteca padrão.
+
 ## Métricas
 
 As métricas principais são `accuracy`, `balanced_accuracy`, `macro_precision`, `macro_recall`, `macro_f1` e `roc_auc_macro_ovr`, além de matriz de confusão, curvas ROC por classe e relatório de classificação.
