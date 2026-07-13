@@ -10,6 +10,9 @@
 \usepackage{url}
 \usepackage[hidelinks]{hyperref}
 
+% O babel traduz \abstractname, mas nao conhece a macro de palavras-chave da IEEEtran.
+\renewcommand{\IEEEkeywordsname}{Palavras-chave}
+
 \begin{document}
 
 \title{Classificação de Condições Maculares em Tomografia de Coerência Óptica com Descritores HOG e uma Rede Convolucional Compacta}
@@ -21,7 +24,13 @@ Vitória, Brasil}}
 
 \maketitle
 
-% TODO: redigir resumo e palavras-chave após consolidar os resultados.
+\begin{abstract}
+A tomografia de coerência óptica é central na avaliação de condições maculares, mas a análise manual de seus cortes transversais demanda tempo especializado. Este trabalho compara, sob um mesmo protocolo, duas abordagens para a classificação automática de quatro classes: neovascularização coroideana, edema macular diabético, drusas e retina normal. A primeira é uma abordagem de aprendizado de máquina clássico, que combina descritores de histogramas de gradientes orientados com regressão logística; a segunda é uma rede convolucional compacta treinada do zero. Foi utilizada a versão 3 do conjunto de Kermany et al., preservando-se o conjunto de teste oficial e assegurando-se separação por paciente entre treino, validação e teste, além do tratamento do desbalanceamento de classes. No teste oficial, a rede convolucional alcança acurácia de 0,938, F1 macro de 0,94 e AUC macro de 0,994, ante 0,636, 0,63 e 0,864 da abordagem clássica, com desempenho superior nas quatro classes e diferença estatisticamente significativa pelo teste de McNemar. Esse resultado é obtido com cerca de 94 mil parâmetros, número significativamente menor que o da rede pré-treinada empregada por Kermany et al., que atinge acurácia 2,8 pontos percentuais superior na mesma partição. O principal modo de erro, comum às duas abordagens, é a confusão entre drusas e neovascularização coroideana, condições do mesmo espectro da degeneração macular relacionada à idade.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Tomografia de coerência óptica, classificação de imagens médicas, redes neurais convolucionais, aprendizado profundo, histogramas de gradientes orientados, degeneração macular relacionada à idade.
+\end{IEEEkeywords}
 
 \section{Introdução}
 
@@ -249,7 +258,16 @@ Drusas é a classe mais difícil para ambos os modelos e concentra o mesmo modo 
 
 Na mesma partição de teste, a rede compacta alcança 93,8\% de acurácia, ante os 96,6\% relatados por Kermany et al.~\cite{kermany2018} com uma Inception V3 pré-treinada no ImageNet. A diferença de 2,8 pontos percentuais é obtida com cerca de 94 mil parâmetros, contra aproximadamente 23 milhões, e sem qualquer transferência de aprendizado. O valor também se aproxima dos 94,5\% da LightOCT~\cite{butola2020}, outra arquitetura compacta treinada do zero, o que reforça a viabilidade de modelos reduzidos neste domínio. Resultados obtidos na versão 2 do conjunto, como o de Arefin et al.~\cite{arefin2021}, não constituem referência equivalente, pois aquela partição apresenta sobreposição de sujeitos entre treino e teste~\cite{tampu2022}.
 
-% TODO: inserir Conclusão e Agradecimentos.
+\section{Conclusão}
+\label{sec:conclusao}
+
+Este trabalho comparou, sob um mesmo protocolo, uma abordagem clássica baseada em descritores HOG com regressão logística e uma rede convolucional compacta treinada do zero, na classificação de quatro condições maculares em B-scans de OCT. O protocolo preservou o conjunto de teste oficial e assegurou separação por paciente entre treino, validação e teste, evitando a inflação de desempenho associada a divisões por imagem. A rede convolucional superou a abordagem clássica em todas as classes, elevando a acurácia de 0,636 para 0,938 e a AUC macro de 0,864 para 0,994, com diferença estatisticamente significativa segundo o teste de McNemar.
+
+Esse desempenho foi obtido com cerca de 94 mil parâmetros, contra aproximadamente 23 milhões da Inception~V3 pré-treinada empregada por Kermany et al.~\cite{kermany2018}, e sem qualquer transferência de aprendizado, ficando 2,8 pontos percentuais abaixo daquele resultado na mesma partição de teste. O achado sugere que, havendo volume suficiente de dados no domínio, arquiteturas reduzidas treinadas do zero constituem alternativa viável para essa tarefa. A principal limitação é comum aos dois modelos e se concentra nas drusas, cuja maior parte dos erros é atribuída à CNV, condição do mesmo espectro da DMRI.
+
+Reitera-se, por fim, que o escopo deste trabalho é a análise experimental de métodos de classificação. O sistema não constitui dispositivo diagnóstico nem foi validado para uso clínico, sobretudo na população brasileira, e uma eventual aplicação se restringiria ao suporte à decisão, como a triagem e a priorização de exames para revisão especializada.
+
+% TODO: inserir Agradecimentos.
 
 \bibliographystyle{IEEEtran}
 \bibliography{references}
