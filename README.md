@@ -13,7 +13,7 @@ O projeto investiga a classificação automática de imagens de tomografia de co
 ## Entregas
 
 - Artigo: [article/conference_101719.pdf](article/conference_101719.pdf)
-- Vídeo de apresentação: `URL_DO_VIDEO_AQUI`
+- Vídeo de apresentação: `https://youtu.be/a0HlH45dhNw`
 
 ## Dataset
 
